@@ -14,7 +14,7 @@ from bodies import Body
 from physics import PhysicsEngine
 from renderer import Renderer
 from ui import UIManager, Button, Slider
-from utils import load_config, save_config, create_default_config, save_simulation_state, load_simulation_state, parse_args
+from utils import load_config, save_config, create_default_config, save_simulation_state, load_simulation_state
 
 
 class Simulation:
@@ -246,13 +246,37 @@ class Simulation:
 
 
 def main():
-    """Main entry point."""
-    # Parse command line arguments
-    args = parse_args()
+    """
+    Main entry point for the simulation.
+    """
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Three-Body Problem Simulation")
+    parser.add_argument("--config", default="config.json", help="Path to configuration file")
+    parser.add_argument("--fullscreen", action="store_true", help="Launch in fullscreen mode")
+    parser.add_argument("--width", type=int, help="Window width (default: from config or 1280)")
+    parser.add_argument("--height", type=int, help="Window height (default: from config or 720)")
+    args = parser.parse_args()
     
-    # Create and run simulation
-    simulation = Simulation(args.config)
-    simulation.run()
+    # Create and run the simulation
+    sim = Simulation(args.config)
+    
+    # Override config with command-line arguments if provided
+    if args.fullscreen:
+        sim.display_config["fullscreen"] = True
+    if args.width:
+        sim.width = args.width
+        sim.display_config["width"] = args.width
+    if args.height:
+        sim.height = args.height
+        sim.display_config["height"] = args.height
+    
+    # Apply display settings
+    if sim.display_config.get("fullscreen", False):
+        sim.screen = pygame.display.set_mode((sim.width, sim.height), pygame.FULLSCREEN)
+    else:
+        sim.screen = pygame.display.set_mode((sim.width, sim.height))
+    
+    sim.run()
 
 
 if __name__ == "__main__":
